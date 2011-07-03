@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# AvrStudio Solution File, Format Version 11.00
+Project("{D1100916-62DA-4D80-A9B4-55A1E7CCEEB3}") = "atmega_master", "atmega_master\atmega_master.avrgccproj", "{CF7ADBE8-2EF6-4542-AC3A-720DBD59F2BF}"
+EndProject
+Project("{D1100916-62DA-4D80-A9B4-55A1E7CCEEB3}") = "atmega_slave", "atmega_slave\atmega_slave.avrgccproj", "{4061A4F0-3485-49DE-AEC5-4793F8D21B75}"
+EndProject
+Global
+	GlobalSection(SubversionScc) = preSolution
+		Svn-Managed = True
+		Manager = AnkhSVN - Subversion Support for Visual Studio
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CF7ADBE8-2EF6-4542-AC3A-720DBD59F2BF}.Release|AVR.ActiveCfg = Release|AVR
+		{CF7ADBE8-2EF6-4542-AC3A-720DBD59F2BF}.Release|AVR.Build.0 = Release|AVR
+		{4061A4F0-3485-49DE-AEC5-4793F8D21B75}.Release|AVR.ActiveCfg = Release|AVR
+		{4061A4F0-3485-49DE-AEC5-4793F8D21B75}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
