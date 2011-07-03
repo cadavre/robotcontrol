@@ -51,14 +51,14 @@ void ADC_init(void) {
 }
 
 /*
- * Set SS line idle
+ * Set SS line in transfer mode
  */
 void SPI_SS_low(void) {
 	PORTB &= ~SS_CTRL;
 }
 
 /*
- * Set SS line in transfer mode
+ * Set SS line idle
  */
 void SPI_SS_high(void) {
 	PORTB |= SS_CTRL;
