@@ -10,12 +10,12 @@
 #include "atmega_master_conf.h"
 #include "lcd/lcd44780.h"
 
-uint8_t deg_sign[] = {6,9,9,6,0,0,0,0};
-
 volatile uint8_t btn_state[6] = {BTN_OFF,BTN_OFF,BTN_OFF,BTN_OFF,BTN_OFF,BTN_OFF};
 volatile uint8_t drive_state[6] = {0,0,0,0,0,0};
 
+uint8_t deg_sign[] = {6,9,9,6,0,0,0,0};
 volatile char btn_sign;
+
 volatile uint8_t lcd_refresh_flag = 0;
 volatile uint8_t i = 0;
 volatile uint8_t j = 0;
@@ -77,7 +77,7 @@ uint8_t SPI_transfer(uint8_t byte) {
  * Refresh LCD display
  */
 void lcd_refresh(void) {
-	if (lcd_refresh_flag == 10) {
+	if (lcd_refresh_flag == 15) {
 		//lcd_cls();
 
 		// J1
@@ -112,8 +112,6 @@ void lcd_refresh(void) {
 		lcd_int(btn_state[5]);
 
 		lcd_refresh_flag = 0;
-	} else {
-		lcd_refresh_flag++;
 	}
 }
 
@@ -168,7 +166,7 @@ ISR(TIMER2_COMP_vect) {
 	} else {
 		j = 0;
 	}
-	lcd_refresh();
+	lcd_refresh_flag++;
 }
 
 int main(void)
@@ -179,9 +177,9 @@ int main(void)
 	SPI_init();
 	lcd_init();
 	lcd_defchar(0x80, deg_sign);
-    while(1)
-    {
-
-    }
+	while(1)
+	{
+		lcd_refresh();
+	}
 	return 0;
 }
