@@ -28,6 +28,9 @@
 #define MISO		(1<<PB4)
 #define SCK			(1<<PB5)
 
+// odœwie¿anie LCD
+#define LCD_REFRESH_TICK		100		// 1 = 1.15ms
+
 // porty LCD skonfigurowane w lcd/lcd44780.h
 
 #endif /* ATMEGA_MASTER_CONF_H_ */
