@@ -25,4 +25,22 @@
 // porty SPI
 #define MISO		(1<<PB4)
 
+// porty serw
+#define SERVO0_PIN				(1<<PD0)
+#define SERVO1_PIN				(1<<PD1)
+#define SERVO2_PIN				(1<<PD2)
+#define SERVO3_PIN				(1<<PD3)
+#define SERVOS					SERVO0_PIN|SERVO1_PIN|SERVO2_PIN|SERVO3_PIN
+
+// serwa: iloœæ kroków na 1deg
+#define SERVO_STEPS_PER_DEG		68
+
+// serwa: wartoœci po³o¿eñ
+#define SERVO_MIN				5200
+#define SERVO_MAX				13100
+#define SERVO_NULL				9150
+#define SERVO_DEFAULT			9150
+#define SERVO_MIN_DEG			0
+#define SERVO_MAX_DEG			115
+
 #endif /* ATMEGA_SLAVE_CONF_H_ */
