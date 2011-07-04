@@ -21,23 +21,10 @@ volatile uint8_t i = 0;
 volatile uint8_t j = 0;
 
 /*
- * SPI transfer interface initialization
+ * Prototypes
  */
-void SPI_init(void) {
-	DDRB |= MOSI|SCK|SS|SS_CTRL;				// master out
-	PORTB |= SS;								// SS=H
-	SPCR |= (1<<SPE)|(1<<MSTR)|(1<<SPR1);		// prescaler 64
-}
-
-/*
- * Timer2 initialization
- */
-void Timer2_init(void) {
-	TCCR2 |= (1<<WGM21);						// CTC
-	TCCR2 |= (1<<CS21)|(1<<CS22);				// prescaler 256
-	OCR2 = 0x24;								// 36 = ~1.15ms
-	TIMSK |= (1<<OCIE2);						// compare match IRQ
-}
+void map_btn_state(uint8_t btn_meas);
+void lcd_refresh(void);
 
 /*
  * Analog-Digital-Converter interface initialization
@@ -48,6 +35,25 @@ void ADC_init(void) {
 	ADCSRA |= (1<<ADIE);						// ADC interrupt flag
 	ADCSRA |= (1<<ADEN)|(1<<ADPS0)|(1<<ADPS2);	// prescaler 32
 	ADCSRA |= (1<<ADSC);						// initial measurement
+}
+
+/*
+ * Timer2 initialization
+ */
+void Timer2_init(void) {
+	TCCR2 |= (1<<WGM21);						// CTC
+	TCCR2 |= (1<<CS21)|(1<<CS22);				// prescaler 256
+	OCR2 = 0x24;								// 0x24 = 36 = ~1.15ms
+	TIMSK |= (1<<OCIE2);						// compare match IRQ
+}
+
+/*
+ * SPI transfer interface initialization
+ */
+void SPI_init(void) {
+	DDRB |= MOSI|SCK|SS|SS_CTRL;				// master out
+	PORTB |= SS;								// SS=H
+	SPCR |= (1<<SPE)|(1<<MSTR);					// no-prescaler
 }
 
 /*
@@ -71,71 +77,6 @@ uint8_t SPI_transfer(uint8_t byte) {
 	SPDR = byte;
 	while( !(SPSR & (1<<SPIF)) );
 	return SPDR;
-}
-
-/*
- * Refresh LCD display
- */
-void lcd_refresh(void) {
-	if (lcd_refresh_flag == LCD_REFRESH_TICK) {
-		//lcd_cls();
-
-		// J1
-		lcd_locate(0,2);
-		lcd_int(drive_state[0]);
-		// J2
-		lcd_locate(0,8);
-		lcd_int(drive_state[1]);
-		// D3
-		lcd_locate(1,2);
-		lcd_int(drive_state[2]);
-		// J4
-		lcd_locate(1,8);
-		lcd_int(drive_state[3]);
-
-		lcd_locate(0,0);
-		btn_sign = (btn_state[0]==BTN_L)  ? '-'  : ( (btn_state[0]==BTN_R) ? '+' : ' ' ) ;
-		lcd_char(btn_sign);
-		lcd_locate(0,6);
-		btn_sign = (btn_state[1]==BTN_L)  ? '-'  : ( (btn_state[1]==BTN_R) ? '+' : ' ' ) ;
-		lcd_char(btn_sign);
-		lcd_locate(1,0);
-		btn_sign = (btn_state[2]==BTN_L)  ? '-'  : ( (btn_state[2]==BTN_R) ? '+' : ' ' ) ;
-		lcd_char(btn_sign);
-		lcd_locate(1,6);
-		btn_sign = (btn_state[3]==BTN_L)  ? '-'  : ( (btn_state[3]==BTN_R) ? '+' : ' ' ) ;
-		lcd_char(btn_sign);
-
-		lcd_locate(0,15);
-		lcd_int(btn_state[4]);
-		lcd_locate(1,15);
-		lcd_int(btn_state[5]);
-
-		lcd_refresh_flag = 0;
-	}
-}
-
-/*
- * Button mapping ADC measurement to btn_state
- */
-void map_btn_state(uint8_t btn_meas) {
-	if ( i != 4) {
-		if ( (btn_meas > 100) && (btn_meas < 130) ) {
-			btn_state[i] = BTN_L;
-		} else if ( (btn_meas > 150) && (btn_meas < 210) ) {
-			btn_state[i] = BTN_R;
-		} else {
-			btn_state[i] = BTN_OFF;
-		}
-	} else if ( i == 4 ) {
-		if ( (btn_meas > 100) && (btn_meas < 130) ) {
-			btn_state[4] = BTN_ON;
-		} else if ( (btn_meas > 150) && (btn_meas < 210) ) {
-			btn_state[5] = BTN_ON;
-		} else {
-			btn_state[4] = btn_state[5] = BTN_OFF;
-		}
-	}
 }
 
 /*
@@ -169,12 +110,13 @@ ISR(TIMER2_COMP_vect) {
 	lcd_refresh_flag++;
 }
 
+/************************************************* MAIN *************************************************/
 int main(void)
 {
 	Timer2_init();
-	sei();
 	ADC_init();
 	SPI_init();
+	sei();
 	lcd_init();
 	lcd_defchar(0x80, deg_sign);
 	while(1)
@@ -182,4 +124,75 @@ int main(void)
 		lcd_refresh();
 	}
 	return 0;
+}
+/********************************************** END OF MAIN **********************************************/
+
+/*
+ * Refresh LCD display
+ */
+void lcd_refresh(void) {
+	if (lcd_refresh_flag == LCD_REFRESH_TICK) {
+		//lcd_cls();
+
+		// J1
+		lcd_locate(0,1);
+		lcd_int(drive_state[0]);
+		// J2
+		lcd_locate(0,6);
+		lcd_int(drive_state[1]);
+		// D3
+		lcd_locate(1,1);
+		lcd_int(drive_state[2]);
+		// J4
+		lcd_locate(1,6);
+		lcd_int(drive_state[3]);
+
+		lcd_locate(0,11);
+		lcd_int(drive_state[4]);
+		lcd_locate(1,11);
+		lcd_int(drive_state[5]);
+
+		lcd_locate(0,0);
+		btn_sign = (btn_state[0]==BTN_L)  ? '-'  : ( (btn_state[0]==BTN_R) ? '+' : ' ' ) ;
+		lcd_char(btn_sign);
+		lcd_locate(0,5);
+		btn_sign = (btn_state[1]==BTN_L)  ? '-'  : ( (btn_state[1]==BTN_R) ? '+' : ' ' ) ;
+		lcd_char(btn_sign);
+		lcd_locate(1,0);
+		btn_sign = (btn_state[2]==BTN_L)  ? '-'  : ( (btn_state[2]==BTN_R) ? '+' : ' ' ) ;
+		lcd_char(btn_sign);
+		lcd_locate(1,5);
+		btn_sign = (btn_state[3]==BTN_L)  ? '-'  : ( (btn_state[3]==BTN_R) ? '+' : ' ' ) ;
+		lcd_char(btn_sign);
+
+		lcd_locate(0,15);
+		lcd_int(btn_state[4]);
+		lcd_locate(1,15);
+		lcd_int(btn_state[5]);
+
+		lcd_refresh_flag = 0;
+	}
+}
+
+/*
+ * Button mapping ADC measurement to btn_state
+ */
+void map_btn_state(uint8_t btn_meas) {
+	if ( i != 4) {
+		if ( (btn_meas > 100) && (btn_meas < 130) ) {
+			btn_state[i] = BTN_L;
+		} else if ( (btn_meas > 150) && (btn_meas < 210) ) {
+			btn_state[i] = BTN_R;
+		} else {
+			btn_state[i] = BTN_OFF;
+		}
+	} else if ( i == 4 ) {
+		if ( (btn_meas > 100) && (btn_meas < 130) ) {
+			btn_state[4] = BTN_ON;
+		} else if ( (btn_meas > 150) && (btn_meas < 210) ) {
+			btn_state[5] = BTN_ON;
+		} else {
+			btn_state[4] = btn_state[5] = BTN_OFF;
+		}
+	}
 }
