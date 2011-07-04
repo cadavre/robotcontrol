@@ -43,6 +43,6 @@ int main(void)
 	sei();
 	while(1)
 	{
-		drive_state[0]++;
+		drive_state[0] = 16;
 	}
 }

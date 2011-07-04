@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 Project("{D1100916-62DA-4D80-A9B4-55A1E7CCEEB3}") = "atmega_master", "atmega_master\atmega_master.avrgccproj", "{CF7ADBE8-2EF6-4542-AC3A-720DBD59F2BF}"
 EndProject
 Project("{D1100916-62DA-4D80-A9B4-55A1E7CCEEB3}") = "atmega_slave", "atmega_slave\atmega_slave.avrgccproj", "{4061A4F0-3485-49DE-AEC5-4793F8D21B75}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CF7ADBE8-2EF6-4542-AC3A-720DBD59F2BF} = {CF7ADBE8-2EF6-4542-AC3A-720DBD59F2BF}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution

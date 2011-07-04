@@ -77,7 +77,7 @@ uint8_t SPI_transfer(uint8_t byte) {
  * Refresh LCD display
  */
 void lcd_refresh(void) {
-	if (lcd_refresh_flag == 15) {
+	if (lcd_refresh_flag == LCD_REFRESH_TICK) {
 		//lcd_cls();
 
 		// J1
