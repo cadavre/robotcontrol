@@ -22,6 +22,9 @@
 #define BTN_L		0x01		// wciœniêty Lewy
 #define BTN_R		0x02		// wciœniêty Prawy
 
+// flaga reakcji na wciœniêcie
+#define BTN_GET_ON	4
+
 // porty SPI
 #define MISO		(1<<PB4)
 
@@ -33,7 +36,7 @@
 #define SERVOS					SERVO0_PIN|SERVO1_PIN|SERVO2_PIN|SERVO3_PIN
 
 // serwa: iloœæ kroków na 1deg
-#define SERVO_STEPS_PER_DEG		68
+#define SERVO_STEPS_PER_DEG		69
 
 // serwa: wartoœci po³o¿eñ
 #define SERVO_MIN				5200

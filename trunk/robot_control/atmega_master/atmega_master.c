@@ -24,6 +24,7 @@ volatile uint8_t j = 0;
  * Prototypes
  */
 void map_btn_state(uint8_t btn_meas);
+void lcd_drive(int value, char *str);
 void lcd_refresh(void);
 
 /*
@@ -128,11 +129,34 @@ int main(void)
 /********************************************** END OF MAIN **********************************************/
 
 /*
+ * Button mapping ADC measurement to btn_state
+ */
+void map_btn_state(uint8_t btn_meas) {
+	if ( i != 4) {
+		if ( (btn_meas > 100) && (btn_meas < 130) ) {
+			btn_state[i] = BTN_L;
+		} else if ( (btn_meas > 150) && (btn_meas < 210) ) {
+			btn_state[i] = BTN_R;
+		} else {
+			btn_state[i] = BTN_OFF;
+		}
+	} else if ( i == 4 ) {
+		if ( (btn_meas > 100) && (btn_meas < 130) ) {
+			btn_state[4] = BTN_ON;
+		} else if ( (btn_meas > 150) && (btn_meas < 210) ) {
+			btn_state[5] = BTN_ON;
+		} else {
+			btn_state[4] = btn_state[5] = BTN_OFF;
+		}
+	}
+}
+
+/*
  * Refresh LCD display
  */
 void lcd_refresh(void) {
 	if (lcd_refresh_flag == LCD_REFRESH_TICK) {
-		//lcd_cls();
+		lcd_cls();
 
 		// J1
 		lcd_locate(0,1);
@@ -148,7 +172,7 @@ void lcd_refresh(void) {
 		lcd_int(drive_state[3]);
 
 		lcd_locate(0,11);
-		lcd_int(drive_state[4]);
+		lcd_str("spd");
 		lcd_locate(1,11);
 		lcd_int(drive_state[5]);
 
@@ -171,28 +195,5 @@ void lcd_refresh(void) {
 		lcd_int(btn_state[5]);
 
 		lcd_refresh_flag = 0;
-	}
-}
-
-/*
- * Button mapping ADC measurement to btn_state
- */
-void map_btn_state(uint8_t btn_meas) {
-	if ( i != 4) {
-		if ( (btn_meas > 100) && (btn_meas < 130) ) {
-			btn_state[i] = BTN_L;
-		} else if ( (btn_meas > 150) && (btn_meas < 210) ) {
-			btn_state[i] = BTN_R;
-		} else {
-			btn_state[i] = BTN_OFF;
-		}
-	} else if ( i == 4 ) {
-		if ( (btn_meas > 100) && (btn_meas < 130) ) {
-			btn_state[4] = BTN_ON;
-		} else if ( (btn_meas > 150) && (btn_meas < 210) ) {
-			btn_state[5] = BTN_ON;
-		} else {
-			btn_state[4] = btn_state[5] = BTN_OFF;
-		}
 	}
 }
