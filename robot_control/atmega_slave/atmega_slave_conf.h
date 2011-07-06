@@ -37,13 +37,14 @@
 
 // serwa: iloœæ kroków na 1deg
 #define SERVO_STEPS_PER_DEG		69
+#define SERVO_MIN_SPEED			95
 
 // serwa: wartoœci po³o¿eñ
 #define SERVO_MIN				5200
-#define SERVO_MAX				13100
-#define SERVO_NULL				9150
-#define SERVO_DEFAULT			9150
+#define SERVO_MAX				19000
+#define SERVO_NULL				12100
+#define SERVO_DEFAULT			SERVO_NULL
 #define SERVO_MIN_DEG			0
-#define SERVO_MAX_DEG			115
+#define SERVO_MAX_DEG			200
 
 #endif /* ATMEGA_SLAVE_CONF_H_ */
