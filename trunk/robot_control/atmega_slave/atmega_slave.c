@@ -74,6 +74,13 @@ void Timer1_init(void) {
 }
 
 /*
+ * Initialize Timer0 for stepping motors switching
+ */
+void Timer0_init(void) {
+	TCCR0 |= (1<<CS00)|(1<<CS02);
+}
+
+/*
  * SPI transfer interface initialization
  */
 void SPI_init(void) {
@@ -183,10 +190,9 @@ int main(void)
 			}
 
 			// refresh current drives positions
-			drive_state[0] = (servo_pos_raw[0] - SERVO_MIN) / SERVO_STEPS_PER_DEG;
-			drive_state[1] = (servo_pos_raw[1] - SERVO_MIN) / SERVO_STEPS_PER_DEG;
-			drive_state[2] = (servo_pos_raw[2] - SERVO_MIN) / SERVO_STEPS_PER_DEG;
-			drive_state[3] = (servo_pos_raw[3] - SERVO_MIN) / SERVO_STEPS_PER_DEG;
+			for(int k=0;k<4;k++) {
+				drive_state[k] = (servo_pos_raw[k] - SERVO_MIN+50) / SERVO_STEPS_PER_DEG;
+			}
 
 			// measure value for speed
 			ADCSRA |= (1<<ADSC);
@@ -224,9 +230,9 @@ void toggle_servo_signal(uint8_t servo) {
  */
 void servo_move(uint8_t servo, uint8_t dir) {
 	if(dir==1 && servo_pos_raw[servo]<SERVO_MAX) {
-		servo_pos_raw[servo] += servo_speed;
+		servo_pos_raw[servo] += (servo_speed + SERVO_MIN_SPEED);
 	} else if(dir==0 && servo_pos_raw[servo]>SERVO_MIN) {
-		servo_pos_raw[servo] -= servo_speed;
+		servo_pos_raw[servo] -= (servo_speed + SERVO_MIN_SPEED);
 	}
 }
 

@@ -161,20 +161,28 @@ void lcd_refresh(void) {
 		// J1
 		lcd_locate(0,1);
 		lcd_int(drive_state[0]);
+		lcd_locate(0,4);
+		lcd_str("\x80");
 		// J2
 		lcd_locate(0,6);
 		lcd_int(drive_state[1]);
+		lcd_locate(0,9);
+		lcd_str("\x80");
 		// D3
 		lcd_locate(1,1);
 		lcd_int(drive_state[2]);
 		// J4
 		lcd_locate(1,6);
 		lcd_int(drive_state[3]);
+		lcd_locate(1,9);
+		lcd_str("\x80");
 
 		lcd_locate(0,11);
 		lcd_str("spd");
 		lcd_locate(1,11);
-		lcd_int(drive_state[5]);
+		lcd_int( (drive_state[5]*100)/255 );
+		lcd_locate(1,14);
+		lcd_char('%');
 
 		lcd_locate(0,0);
 		btn_sign = (btn_state[0]==BTN_L)  ? '-'  : ( (btn_state[0]==BTN_R) ? '+' : ' ' ) ;
