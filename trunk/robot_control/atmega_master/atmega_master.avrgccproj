@@ -94,6 +94,12 @@
     <Compile Include="lcd\lcd44780.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="usart\usart.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="usart\usart.h">
+      <SubType>compile</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile">
@@ -102,6 +108,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="lcd" />
+    <Folder Include="usart" />
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\AvrGCC.targets" />
 </Project>

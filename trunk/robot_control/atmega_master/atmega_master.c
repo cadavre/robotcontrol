@@ -9,6 +9,7 @@
 #include <avr/io.h>
 #include "atmega_master_conf.h"
 #include "lcd/lcd44780.h"
+#include "usart/usart.h"
 
 volatile uint8_t btn_state[6] = {BTN_OFF,BTN_OFF,BTN_OFF,BTN_OFF,BTN_OFF,BTN_OFF};
 volatile uint8_t drive_state[6] = {0,0,0,0,0,0};
@@ -16,7 +17,7 @@ volatile uint8_t drive_state[6] = {0,0,0,0,0,0};
 uint8_t deg_sign[] = {6,9,9,6,0,0,0,0};
 volatile char btn_sign;
 
-volatile uint8_t lcd_refresh_flag = 0;
+volatile uint8_t refresh_flag = 0;
 volatile uint8_t i = 0;
 volatile uint8_t j = 0;
 
@@ -108,7 +109,7 @@ ISR(TIMER2_COMP_vect) {
 	} else {
 		j = 0;
 	}
-	lcd_refresh_flag++;
+	refresh_flag++;
 }
 
 /************************************************* MAIN *************************************************/
@@ -117,12 +118,22 @@ int main(void)
 	Timer2_init();
 	ADC_init();
 	SPI_init();
+	USART_init(__UBRR);
+	OSCCAL = 152;
 	sei();
 	lcd_init();
 	lcd_defchar(0x80, deg_sign);
 	while(1)
 	{
-		lcd_refresh();
+		if ( (refresh_flag % LCD_REFRESH_TICK) == 0 ) {
+			lcd_refresh();
+		}
+		if ( (refresh_flag % USART_REFRESH_TICK) == 0 ) {
+			USART_send_report();
+		}
+		if (refresh_flag==255) {
+			refresh_flag = 0;
+		}
 	}
 	return 0;
 }
@@ -155,53 +166,66 @@ void map_btn_state(uint8_t btn_meas) {
  * Refresh LCD display
  */
 void lcd_refresh(void) {
-	if (lcd_refresh_flag == LCD_REFRESH_TICK) {
-		lcd_cls();
+	lcd_cls();
 
-		// J1
-		lcd_locate(0,1);
-		lcd_int(drive_state[0]);
-		lcd_locate(0,4);
-		lcd_str("\x80");
-		// J2
-		lcd_locate(0,6);
-		lcd_int(drive_state[1]);
-		lcd_locate(0,9);
-		lcd_str("\x80");
-		// D3
-		lcd_locate(1,1);
-		lcd_int(drive_state[2]);
-		// J4
-		lcd_locate(1,6);
-		lcd_int(drive_state[3]);
-		lcd_locate(1,9);
-		lcd_str("\x80");
+	// J1
+	lcd_locate(0,1);
+	lcd_int(drive_state[0]);
+	lcd_locate(0,4);
+	lcd_str("\x80");
+	// J2
+	lcd_locate(0,6);
+	lcd_int(drive_state[1]);
+	lcd_locate(0,9);
+	lcd_str("\x80");
+	// D3
+	lcd_locate(1,1);
+	lcd_int(drive_state[2]);
+	// J4
+	lcd_locate(1,6);
+	lcd_int(drive_state[3]);
+	lcd_locate(1,9);
+	lcd_str("\x80");
 
-		lcd_locate(0,11);
-		lcd_str("spd");
-		lcd_locate(1,11);
-		lcd_int( (drive_state[5]*100)/255 );
-		lcd_locate(1,14);
-		lcd_char('%');
+	lcd_locate(0,11);
+	lcd_str("SPD");
+	lcd_locate(1,11);
+	lcd_int( (drive_state[5]*100)/255 );
+	lcd_locate(1,14);
+	lcd_char('%');
 
-		lcd_locate(0,0);
-		btn_sign = (btn_state[0]==BTN_L)  ? '-'  : ( (btn_state[0]==BTN_R) ? '+' : ' ' ) ;
-		lcd_char(btn_sign);
-		lcd_locate(0,5);
-		btn_sign = (btn_state[1]==BTN_L)  ? '-'  : ( (btn_state[1]==BTN_R) ? '+' : ' ' ) ;
-		lcd_char(btn_sign);
-		lcd_locate(1,0);
-		btn_sign = (btn_state[2]==BTN_L)  ? '-'  : ( (btn_state[2]==BTN_R) ? '+' : ' ' ) ;
-		lcd_char(btn_sign);
-		lcd_locate(1,5);
-		btn_sign = (btn_state[3]==BTN_L)  ? '-'  : ( (btn_state[3]==BTN_R) ? '+' : ' ' ) ;
-		lcd_char(btn_sign);
+	lcd_locate(0,0);
+	btn_sign = (btn_state[0]==BTN_L)  ? '-'  : ( (btn_state[0]==BTN_R) ? '+' : ' ' ) ;
+	lcd_char(btn_sign);
+	lcd_locate(0,5);
+	btn_sign = (btn_state[1]==BTN_L)  ? '-'  : ( (btn_state[1]==BTN_R) ? '+' : ' ' ) ;
+	lcd_char(btn_sign);
+	lcd_locate(1,0);
+	btn_sign = (btn_state[2]==BTN_L)  ? '-'  : ( (btn_state[2]==BTN_R) ? '+' : ' ' ) ;
+	lcd_char(btn_sign);
+	lcd_locate(1,5);
+	btn_sign = (btn_state[3]==BTN_L)  ? '-'  : ( (btn_state[3]==BTN_R) ? '+' : ' ' ) ;
+	lcd_char(btn_sign);
 
-		lcd_locate(0,15);
-		lcd_int(btn_state[4]);
-		lcd_locate(1,15);
-		lcd_int(btn_state[5]);
+	lcd_locate(0,15);
+	lcd_int(btn_state[4]);
+	lcd_locate(1,15);
+	lcd_int(btn_state[5]);
+}
 
-		lcd_refresh_flag = 0;
-	}
+/*
+ * Send drive states report on RS232
+ */
+void USART_send_report(void) {
+	USART_string("\r\n#### Report ####");
+	USART_string("\r\nDrive J1: ");
+	USART_int(drive_state[0]);
+	USART_string("\r\nDrive J2: ");
+	USART_int(drive_state[1]);
+	USART_string("\r\nDrive D3: ");
+	USART_int(drive_state[2]);
+	USART_string("\r\nDrive J4: ");
+	USART_int(drive_state[3]);
+	USART_string("\r\nSpeed: ");
+	USART_int(drive_state[5]);
 }
