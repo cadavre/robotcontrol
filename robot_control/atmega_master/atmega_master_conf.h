@@ -28,8 +28,9 @@
 #define MISO		(1<<PB4)
 #define SCK			(1<<PB5)
 
-// odœwie¿anie LCD
-#define LCD_REFRESH_TICK		10		// 1 = 1.15ms
+// odœwie¿anie
+#define LCD_REFRESH_TICK		20		// 11.5ms
+#define USART_REFRESH_TICK		252		// 290ms
 
 // porty LCD skonfigurowane w lcd/lcd44780.h
 
