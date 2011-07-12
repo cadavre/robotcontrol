@@ -27,6 +27,7 @@ volatile uint8_t j = 0;
 void map_btn_state(uint8_t btn_meas);
 void lcd_drive(int value, char *str);
 void lcd_refresh(void);
+void USART_send_report(void);
 
 /*
  * Analog-Digital-Converter interface initialization
