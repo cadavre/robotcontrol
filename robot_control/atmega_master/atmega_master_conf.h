@@ -29,8 +29,9 @@
 #define SCK			(1<<PB5)
 
 // odœwie¿anie
-#define LCD_REFRESH_TICK		20		// 11.5ms
-#define USART_REFRESH_TICK		252		// 290ms
+//TODO: mniejszy czas odœwie¿ania
+#define LCD_REFRESH_TICK		40
+#define USART_REFRESH_TICK		252
 
 // porty LCD skonfigurowane w lcd/lcd44780.h
 
