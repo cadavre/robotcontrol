@@ -74,15 +74,15 @@
 #define M1_SPD_L				10
 #define M1_SPD_H				155
 
-// krokowe: ratio prze³o¿eñ na jednostkê *10
-#define M0_RATIO				0.9				// stopni na krok
-#define M1_RATIO				1				// mm na 400 kroków
+// krokowe: ratio prze³o¿eñ na jednostkê
+#define M0_RATIO				0.9
+#define M1_RATIO				100
 
-// krokowe: ograniczenie k¹tów
+// krokowe: ograniczenie pozycji
 #define M0_POS_MIN				0
-#define M0_POS_MAX				360
+#define M0_POS_MAX				400
 #define M1_POS_MIN				0
-#define M1_POS_MAX				360
+#define M1_POS_MAX				4000
 
 // oznaczenia przycisków
 #define BTN_J1		0
