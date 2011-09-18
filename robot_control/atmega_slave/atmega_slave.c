@@ -12,7 +12,7 @@
 /*
  * Variables for servo controls
  */
-volatile uint16_t servo_pos_raw[4] = {SERVO_DEFAULT,SERVO_DEFAULT,SERVO_DEFAULT,SERVO_DEFAULT};
+volatile uint16_t servo_pos_raw[4] = {SERVO_DEFAULT,SERVO_DEFAULT+10,SERVO_DEFAULT,SERVO_DEFAULT};	// + wartoœæ dla synchronizacji
 volatile uint8_t servo_speed = 0;
 volatile uint8_t current_servo = 0;
 
@@ -20,6 +20,8 @@ volatile uint8_t current_servo = 0;
  * Variables for stepping motors controls
  */
 volatile uint8_t motor_current_step[2] = {1,1};		// 1-8
+volatile uint16_t motor_pos[2] = {0,0};
+volatile uint8_t motor_speed[2] = {100,100};
 
 /*
  * Variables for SPI
@@ -29,7 +31,7 @@ volatile uint8_t btn_state[6] = {BTN_OFF,BTN_OFF,BTN_OFF,BTN_OFF,BTN_OFF,BTN_OFF
 
 volatile uint8_t j = 0;
 volatile uint8_t btn_get_flag = 0;
-volatile uint8_t stepper_flag = 0;
+volatile uint8_t stepper_flag[2] = {0,0};
 
 /*
  * Prototypes
@@ -171,27 +173,32 @@ ISR(TIMER1_COMPA_vect) {
  * Timer0 interrupt handler
  */
 ISR(TIMER0_OVF_vect) {
-	if (stepper_flag>servo_speed) {
-		stepper_flag = 0;
+	if (stepper_flag[0] > (255 - motor_speed[0])) {
+		stepper_flag[0] = 0;
 	} else {
-		stepper_flag++;
+		stepper_flag[0]++;
+	}
+	if (stepper_flag[1] > (255 - motor_speed[1])) {
+		stepper_flag[1] = 0;
+	} else {
+		stepper_flag[1]++;
 	}
 
-	if (stepper_flag == 0) {
+	if (stepper_flag[0] == 0) {
 		if (btn_state[0]==BTN_L) {
 			motor_move(0,0);
 		} else if (btn_state[0]==BTN_R) {
 			motor_move(0,1);
 		}
 	}
-	if (stepper_flag == 0) {
+	//TODO ograniczenie posuwu przez M1_POS_MIN i M1_POS_MAX
+	if (stepper_flag[1] == 0) {
 		if (btn_state[2]==BTN_L) {
 			motor_move(1,0);
 		} else if (btn_state[2]==BTN_R) {
 			motor_move(1,1);
 		}
 	}
-
 }
 
 /*
@@ -222,26 +229,41 @@ int main(void)
 			/* buttons for servos */
 			if (btn_state[1]==BTN_L) {
 				servo_move(0,0);
-				servo_move(1,0);
+				servo_move(1,1);
 			} else if (btn_state[1]==BTN_R) {
 				servo_move(0,1);
-				servo_move(1,1);
+				servo_move(1,0);
 			}
 			if (btn_state[3]==BTN_L) {
 				servo_move(2,0);
-				servo_move(3,0);
 			} else if (btn_state[3]==BTN_R) {
 				servo_move(2,1);
-				servo_move(3,1);
 			}
 
 			// refresh current drives positions
-			for(int k=0;k<4;k++) {
-				drive_state[k] = (servo_pos_raw[k] - SERVO_MIN+50) / SERVO_STEPS_PER_DEG;
-			}
+			drive_state[0] = motor_pos[0] * M0_RATIO;
+			drive_state[1] = (servo_pos_raw[1] - SERVO_MIN+50) / SERVO_STEPS_PER_DEG;		// +50 dla wyrównania 0 stopni
+			drive_state[2] = motor_pos[1] / M1_RATIO;																			// TEMP: dzielenie zamiast mno¿enia!
+			drive_state[3] = (servo_pos_raw[3] - SERVO_MIN+50) / SERVO_STEPS_PER_DEG;
 
 			// measure value for speed
 			ADCSRA |= (1<<ADSC);
+
+			// set motors speed
+			if (servo_speed > M0_SPD_H) {
+				motor_speed[0] = M0_SPD_H;
+			} else if (servo_speed < M0_SPD_L) {
+				motor_speed[0] = M0_SPD_L;
+			} else {
+				motor_speed[0] = servo_speed;
+			}
+			if (servo_speed > M1_SPD_H) {
+				motor_speed[1] = M1_SPD_H;
+			} else if (servo_speed < M0_SPD_L) {
+				motor_speed[1] = M1_SPD_L;
+			} else {
+				motor_speed[1] = servo_speed;
+			}
 
 			// clear button flag
 			btn_get_flag = 0;
@@ -369,6 +391,18 @@ void motor_make_step(uint8_t motor, uint8_t step) {
  * Move servo in particular directory by requesting step change
  */
 void motor_move(uint8_t motor, uint8_t dir) {
-	uint8_t next_step = (dir==1) ? motor_current_step[motor]+1 : motor_current_step[motor]-1;
+	uint8_t next_step = (dir==1) ? motor_current_step[motor]+1 : motor_current_step[motor]-1;		// 0-8
 	motor_make_step(motor, next_step);
+	// count current position of infinite rotation motor
+	if (motor==0) {
+		if (dir==0 && motor_pos[0]==M0_POS_MIN)
+			motor_pos[0] = M0_POS_MAX;
+		} else if (dir==1 && motor_pos[0]==M0_POS_MAX) {
+			motor_pos[0] = M0_POS_MIN;
+		} else {
+			motor_pos[0] = (dir==1) ? motor_pos[0]+1 : motor_pos[0]-1;
+		}
+	} else if (motor==1) { // count current position of finite transitional motor
+		//TODO pozycja silnika krokowego posuwu
+	}
 }
