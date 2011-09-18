@@ -68,6 +68,22 @@
 #define M0_SWITCH_FLAG			100
 #define M1_SWITCH_FLAG			200
 
+// krokowe: ograniczenie prêdkoœci
+#define M0_SPD_L				10
+#define M0_SPD_H				155
+#define M1_SPD_L				10
+#define M1_SPD_H				155
+
+// krokowe: ratio prze³o¿eñ na jednostkê *10
+#define M0_RATIO				0.9				// stopni na krok
+#define M1_RATIO				1				// mm na 400 kroków
+
+// krokowe: ograniczenie k¹tów
+#define M0_POS_MIN				0
+#define M0_POS_MAX				360
+#define M1_POS_MIN				0
+#define M1_POS_MAX				360
+
 // oznaczenia przycisków
 #define BTN_J1		0
 #define BTN_J2		1
