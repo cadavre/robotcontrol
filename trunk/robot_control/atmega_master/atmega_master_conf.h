@@ -30,7 +30,7 @@
 
 // odœwie¿anie
 //TODO: mniejszy czas odœwie¿ania
-#define LCD_REFRESH_TICK		40
+#define LCD_REFRESH_TICK		80
 #define USART_REFRESH_TICK		252
 
 // porty LCD skonfigurowane w lcd/lcd44780.h

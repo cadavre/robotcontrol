@@ -170,31 +170,40 @@ void lcd_refresh(void) {
 	lcd_cls();
 
 	// J1
-	lcd_locate(0,1);
+	lcd_locate(0,0);
+	lcd_str("1:");
+	lcd_locate(0,2);
 	lcd_int(drive_state[0]);
-	lcd_locate(0,4);
+	lcd_locate(0,5);
 	lcd_str("\x80");
 	// J2
 	lcd_locate(0,6);
+	lcd_str("2:");
+	lcd_locate(0,8);
 	lcd_int(drive_state[1]);
-	lcd_locate(0,9);
+	lcd_locate(0,11);
 	lcd_str("\x80");
 	// D3
-	lcd_locate(1,1);
+	lcd_locate(1,0);
+	lcd_str("3:");
+	lcd_locate(1,2);
 	lcd_int(drive_state[2]);
 	// J4
 	lcd_locate(1,6);
+	lcd_str("4:");
+	lcd_locate(1,8);
 	lcd_int(drive_state[3]);
-	lcd_locate(1,9);
+	lcd_locate(1,11);
 	lcd_str("\x80");
 
-	lcd_locate(0,11);
+	lcd_locate(0,12);
 	lcd_str("SPD");
-	lcd_locate(1,11);
-	lcd_int( (drive_state[5]*100)/255 );
-	lcd_locate(1,14);
+	lcd_locate(1,12);
+	lcd_int( 20+((drive_state[5]*100)/255) );	// +20 dla prêdkoœci 20-100% bo pomiar wychodzi 0-80%
+	lcd_locate(1,15);
 	lcd_char('%');
 
+	/*
 	lcd_locate(0,0);
 	btn_sign = (btn_state[0]==BTN_L)  ? '-'  : ( (btn_state[0]==BTN_R) ? '+' : ' ' ) ;
 	lcd_char(btn_sign);
@@ -212,6 +221,7 @@ void lcd_refresh(void) {
 	lcd_int(btn_state[4]);
 	lcd_locate(1,15);
 	lcd_int(btn_state[5]);
+	*/
 }
 
 /*
