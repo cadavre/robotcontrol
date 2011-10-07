@@ -9,10 +9,20 @@
 #include <avr/io.h>
 #include "atmega_slave_conf.h"
 
+#if USING_SOFTSTART == 1
+/*
+ * Variables for softstart
+ */
+volatile uint8_t ss_s_step[4] = {0,0,0,0};			// max 255 zmian prêdkoœci
+volatile uint8_t ss_s_done[4] = {0,0,0,0};			// czy wykonano softstart danego napêdu
+volatile uint8_t ss_m_step[2] = {0,0};
+volatile uint8_t ss_m_done[2] = {0,0};
+#endif
+
 /*
  * Variables for servo controls
  */
-volatile uint16_t servo_pos_raw[4] = {SERVO_DEFAULT,SERVO_DEFAULT+10,SERVO_DEFAULT,SERVO_DEFAULT};	// + wartoœæ dla synchronizacji
+volatile uint16_t servo_pos_raw[4] = {SERVO_DEFAULT,SERVO_DEFAULT,SERVO_DEFAULT,SERVO_DEFAULT};
 volatile uint8_t servo_speed = 0;
 volatile uint8_t current_servo = 0;
 
@@ -20,7 +30,7 @@ volatile uint8_t current_servo = 0;
  * Variables for stepping motors controls
  */
 volatile uint8_t motor_current_step[2] = {1,1};		// 1-8
-volatile uint16_t motor_pos[2] = {0,0};
+volatile uint16_t motor_pos[2] = {0,5};
 volatile uint8_t motor_speed[2] = {100,100};
 
 /*
@@ -173,6 +183,8 @@ ISR(TIMER1_COMPA_vect) {
  * Timer0 interrupt handler
  */
 ISR(TIMER0_OVF_vect) {
+	#if USING_SOFTSTART == 1
+	#else
 	if (stepper_flag[0] > (255 - motor_speed[0])) {
 		stepper_flag[0] = 0;
 	} else {
@@ -183,6 +195,7 @@ ISR(TIMER0_OVF_vect) {
 	} else {
 		stepper_flag[1]++;
 	}
+	#endif
 
 	if (stepper_flag[0] == 0) {
 		if (btn_state[0]==BTN_L) {
@@ -191,12 +204,16 @@ ISR(TIMER0_OVF_vect) {
 			motor_move(0,1);
 		}
 	}
-	//TODO ograniczenie posuwu przez M1_POS_MIN i M1_POS_MAX
+	//TODO sprawdzenie ograniczenia
 	if (stepper_flag[1] == 0) {
-		if (btn_state[2]==BTN_L) {
-			motor_move(1,0);
-		} else if (btn_state[2]==BTN_R) {
-			motor_move(1,1);
+		if (btn_state[3]==BTN_L) {
+			if (motor_pos[1]>M1_POS_MIN) {
+				motor_move(1,0);
+			}
+		} else if (btn_state[3]==BTN_R) {
+			if (motor_pos[1]<M1_POS_MAX) {
+				motor_move(1,1);
+			}
 		}
 	}
 }
@@ -227,24 +244,40 @@ int main(void)
 		if (btn_get_flag==BTN_GET_ON) {
 
 			/* buttons for servos */
-			if (btn_state[1]==BTN_L) {
+			if (btn_state[4]==BTN_L) {
 				servo_move(0,0);
 				servo_move(1,1);
-			} else if (btn_state[1]==BTN_R) {
+			} else if (btn_state[4]==BTN_R) {
 				servo_move(0,1);
 				servo_move(1,0);
 			}
-			if (btn_state[3]==BTN_L) {
-				servo_move(2,0);
-			} else if (btn_state[3]==BTN_R) {
-				servo_move(2,1);
+			#if USING_SOFTSTART == 1
+			else {
+				ss_s_done[0] = 0;			// zerujemy flagê softstartu po puszczeniu przycisku
+				ss_s_done[1] = 0;
+				ss_s_step[0] = 0
+				ss_s_step[1] = 0
 			}
+			#endif
+			if (btn_state[2]==BTN_L) {
+				servo_move(2,0);
+				servo_move(3,0);
+			} else if (btn_state[2]==BTN_R) {
+				servo_move(2,1);
+				servo_move(3,1);
+			}
+			#if USING_SOFTSTART == 1
+			else {
+				ss_s_done[2] = 0;
+				ss_s_step[2] = 0
+			}
+			#endif
 
 			// refresh current drives positions
 			drive_state[0] = motor_pos[0] * M0_RATIO;
 			drive_state[1] = (servo_pos_raw[1] - SERVO_MIN+50) / SERVO_STEPS_PER_DEG;		// +50 dla wyrównania 0 stopni
-			drive_state[2] = motor_pos[1] / M1_RATIO;																			// TEMP: dzielenie zamiast mno¿enia!
-			drive_state[3] = (servo_pos_raw[3] - SERVO_MIN+50) / SERVO_STEPS_PER_DEG;
+			drive_state[2] = motor_pos[1] / M1_RATIO;																					// TEMP: dzielenie zamiast mno¿enia!
+			drive_state[3] = (servo_pos_raw[2] - SERVO_MIN+50) / SERVO_STEPS_PER_DEG;
 
 			// measure value for speed
 			ADCSRA |= (1<<ADSC);
@@ -297,11 +330,33 @@ void toggle_servo_signal(uint8_t servo) {
  * Changes software PWM overflow controlling servo position, by move
  */
 void servo_move(uint8_t servo, uint8_t dir) {
+	#if USING_SOFTSTART == 1
+	if (dir==1 && servo_pos_raw[servo]<SERVO_MAX) {
+		if (servo_speed+5>SOFTSTART_S_STEPS) {
+			servo_pos_raw[servo] += (servo_speed + SERVO_MIN_SPEED) - SOFTSTART_S_STEPS+ss_s_step[servo];
+		} else {
+			servo_pos_raw[servo] += (servo_speed + SERVO_MIN_SPEED);
+		}
+	} else if (dir==0 && servo_pos_raw[servo]>SERVO_MIN) {
+		if (servo_speed+5>SOFTSTART_S_STEPS) {
+			servo_pos_raw[servo] -= (servo_speed + SERVO_MIN_SPEED) + SOFTSTART_S_STEPS-ss_s_step[servo];
+		} else {
+			servo_pos_raw[servo] -= (servo_speed + SERVO_MIN_SPEED);
+		}
+	}
+	if (ss_s_step[servo]<SOFTSTART_S_STEPS && ss_s_done[servo] != 1) {
+		ss_s_step[servo]++;
+	} else {
+		ss_s_done[servo] = 1;	// flaga prawdy - zakoñczono softstart
+		ss_s_step[servo] = 0;	// zeruje flagê kroku
+	}
+	#else
 	if (dir==1 && servo_pos_raw[servo]<SERVO_MAX) {
 		servo_pos_raw[servo] += (servo_speed + SERVO_MIN_SPEED);
 	} else if (dir==0 && servo_pos_raw[servo]>SERVO_MIN) {
 		servo_pos_raw[servo] -= (servo_speed + SERVO_MIN_SPEED);
 	}
+	#endif
 }
 
 /*
@@ -393,16 +448,20 @@ void motor_make_step(uint8_t motor, uint8_t step) {
 void motor_move(uint8_t motor, uint8_t dir) {
 	uint8_t next_step = (dir==1) ? motor_current_step[motor]+1 : motor_current_step[motor]-1;		// 0-8
 	motor_make_step(motor, next_step);
-	// count current position of infinite rotation motor
-	if (motor==0) {
-		if (dir==0 && motor_pos[0]==M0_POS_MIN)
+	if (motor==0) { // position of infinite rotation motor
+		if (dir==0 && motor_pos[0]==M0_POS_MIN) {
 			motor_pos[0] = M0_POS_MAX;
 		} else if (dir==1 && motor_pos[0]==M0_POS_MAX) {
 			motor_pos[0] = M0_POS_MIN;
 		} else {
 			motor_pos[0] = (dir==1) ? motor_pos[0]+1 : motor_pos[0]-1;
 		}
-	} else if (motor==1) { // count current position of finite transitional motor
+	} else if (motor==1) { // position of finite transitional motor
 		//TODO pozycja silnika krokowego posuwu
+		if (dir==0) {
+			motor_pos[1]--;
+		} else if (dir==1) {
+			motor_pos[1]++;
+		}
 	}
 }

@@ -8,6 +8,11 @@
 #ifndef ATMEGA_SLAVE_CONF_H_
 #define ATMEGA_SLAVE_CONF_H_
 
+// w³¹cznik softstart'u
+#define USING_SOFTSTART			0
+#define SOFTSTART_M_STEPS		40
+#define SOFTSTART_S_STEPS		40
+
 // porty SPI
 #define MISO		(1<<PB4)
 
@@ -69,20 +74,20 @@
 #define M1_SWITCH_FLAG			200
 
 // krokowe: ograniczenie prêdkoœci
-#define M0_SPD_L				10
+#define M0_SPD_L				15
 #define M0_SPD_H				155
-#define M1_SPD_L				10
-#define M1_SPD_H				155
+#define M1_SPD_L				5
+#define M1_SPD_H				100
 
 // krokowe: ratio prze³o¿eñ na jednostkê
-#define M0_RATIO				0.9
+#define M0_RATIO				0.1
 #define M1_RATIO				100
 
 // krokowe: ograniczenie pozycji
 #define M0_POS_MIN				0
 #define M0_POS_MAX				400
-#define M1_POS_MIN				0
-#define M1_POS_MAX				4000
+#define M1_POS_MIN				1
+#define M1_POS_MAX				40000
 
 // oznaczenia przycisków
 #define BTN_J1		0

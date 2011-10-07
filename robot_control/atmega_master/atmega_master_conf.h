@@ -29,7 +29,6 @@
 #define SCK			(1<<PB5)
 
 // odœwie¿anie
-//TODO: mniejszy czas odœwie¿ania
 #define LCD_REFRESH_TICK		80
 #define USART_REFRESH_TICK		252
 
