@@ -144,7 +144,7 @@ int main(void)
  * Button mapping ADC measurement to btn_state
  */
 void map_btn_state(uint8_t btn_meas) {
-	if ( i != 4) {
+	//if ( i != 4) {
 		if ( (btn_meas > 100) && (btn_meas < 130) ) {
 			btn_state[i] = BTN_L;
 		} else if ( (btn_meas > 150) && (btn_meas < 210) ) {
@@ -152,7 +152,7 @@ void map_btn_state(uint8_t btn_meas) {
 		} else {
 			btn_state[i] = BTN_OFF;
 		}
-	} else if ( i == 4 ) {
+	/*} else if ( i == 4 ) {
 		if ( (btn_meas > 100) && (btn_meas < 130) ) {
 			btn_state[4] = BTN_ON;
 		} else if ( (btn_meas > 150) && (btn_meas < 210) ) {
@@ -160,7 +160,7 @@ void map_btn_state(uint8_t btn_meas) {
 		} else {
 			btn_state[4] = btn_state[5] = BTN_OFF;
 		}
-	}
+	}*/
 }
 
 /*
